@@ -18,10 +18,12 @@ export class TokeniserError extends Error{
 }
 const regexMatcher=(regex: string, type: tokenType): Matcher=>(input: string, index: number)=>{
     const match = input.substring(index).match(regex);
-    if(!match){
-        return {type, value:"no match"}
-    }
-    return (match && {type,value: match[0]});
+    return (
+        match && {
+          type,
+          value: match[0]
+        }
+    );
 }
 //matches by the order priority
 const matchers= [
@@ -48,7 +50,7 @@ export const tokenize: Tokieniser = (input: string) => {
             index+=Number(match?.value.length); // it keeps getting me and error of the value may be null it is making me crazy 
         }
         else{
-            throw new TokeniserError(`unxpected token ${input.substring(index,index+1)}`, index);
+            throw new TokeniserError(`Unexpected token ${input.substring(index,index+1)}`, index);
         }
     }
     return tokens;

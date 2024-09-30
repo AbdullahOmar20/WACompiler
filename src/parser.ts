@@ -11,18 +11,19 @@ const  asOperator = (value: string): operator => {
 
 export const parse: Parser = tokens=>{
     //iterating over tokens
-    const tokenIterator = tokens[Symbol.iterator]();
-    let currentToken:any = tokenIterator.next().value;
+    let tokenIterator = tokens[Symbol.iterator]();
+    let currentToken = tokenIterator.next().value;
 
     const eatToken = (value? : string)=>{
         if(value && value !== currentToken.value){
             throw new ParserError(`expected token value ${value} received ${currentToken.value}`, currentToken);
         }
-        currentToken = currentToken.next().value;
+        currentToken = tokenIterator.next().value;
+        
     }
     
     //parsing expressions
-    const parseExpression: parseStep<expressionNode|any> = () => {
+    const parseExpression: parseStep<expressionNode> = () => {
         let node: expressionNode;
         switch (currentToken.type) {
           case "number":
@@ -58,7 +59,7 @@ export const parse: Parser = tokens=>{
                     eatToken();
                     return {
                         type: "printStatement",
-                        exoression: parseExpression()
+                        expression: parseExpression()
                     }
             }
         }

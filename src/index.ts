@@ -1,7 +1,7 @@
 declare var CodeMirror: any;
-const interpreterRuntime = require("/src/interpreter").runtime;
-const compilerRuntime = require("/src/compiler").runtime;
-const { keywords, operators } = require("../src/tokenizer");
+const interpreterRuntime = require("/built/interpreter").runtime;
+const compilerRuntime = require("/built/compiler").runtime;
+const { keywords, operators } = require("../built/tokeniser");
 
 const compileButton = document.getElementById("compile") as HTMLButtonElement;
 const interpretButton = document.getElementById("interpret") as HTMLButtonElement;
@@ -33,8 +33,8 @@ const logMessage = (message: string | number) =>
   (outputArea.value = outputArea.value + message + "\n");
 const markError = (token: Token|any) => {
   marker = editor.markText(
-    { line: token.line, ch: token.char - 1 },
-    { line: token.line, ch: token.char - 1 + token.value.length },
+    { line: token.line, ch: token.char  },
+    { line: token.line, ch: token.char  + token.value.length },
     { className: "error" }
   );
 };

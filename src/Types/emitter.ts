@@ -1,3 +1,3 @@
 interface Emitter{
-    (ast: program): Uint8Array
+    (ast?: program): Uint8Array
 }
