@@ -1,6 +1,8 @@
-type statementNode = printStatementNode;
+type statementNode = printStatementNode | variableDeclarationNode;
 type program = statementNode[];
 type operator = "+" | "-" | "/" | "*" | "==" | ">" | "<" | "&&";
+type expressionNode = numberLiteralNode | binaryExpressionNode | IndentifierNode;
+
 interface programNode{
     type: string
 }
@@ -22,10 +24,15 @@ interface IndentifierNode extends programNode{
     value: string
 }
 
-type expressionNode = numberLiteralNode | binaryExpressionNode;
 interface printStatementNode extends programNode{
     type: "printStatement";
     expression: expressionNode
+}
+
+interface variableDeclarationNode extends programNode{
+    type: "variableDeclaration";
+    name: string;
+    initializer: expressionNode
 }
 
 interface Parser{

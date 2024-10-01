@@ -11,6 +11,16 @@ const testCases = [
         name: "nested binary expressions",
         input: "print ((6-4)+10)",
         output: [12]
+    },
+    {
+        name: "variable declaration",
+        input: "var x = 1 print x",
+        output: [1]
+    },
+    {
+        name: "float declaration",
+        input: "var x = 1.1 print x",
+        output: [1.1]
     }
 ];
 test.skip("skip", ()=>{});

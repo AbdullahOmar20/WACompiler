@@ -29,6 +29,7 @@ const applyOperator = (op: string, left: number, right: number) => {
 export const runtime: Runtime= async (src, {print}) => ()=>{
     const tokens = tokenize(src);
     const ast = parse(tokens);
+    const identifires = new Map();
     const evaluateExpression = (expression: expressionNode): number =>{
         switch(expression.type){
             case "numberliteral":
@@ -38,7 +39,9 @@ export const runtime: Runtime= async (src, {print}) => ()=>{
                     expression.operator,
                     evaluateExpression(expression.left),
                     evaluateExpression(expression.right)
-                )
+                );
+            case "identifier":
+                return identifires.get(expression.value);
             default:
                 return 0;
         }
@@ -48,6 +51,9 @@ export const runtime: Runtime= async (src, {print}) => ()=>{
             switch (statement.type){
                 case "printStatement":
                     print(evaluateExpression(statement.expression));
+                    break;
+                case "variableDeclaration":
+                    identifires.set(statement.name, evaluateExpression(statement.initializer));
                     break;
             }
         });

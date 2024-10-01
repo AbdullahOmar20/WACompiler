@@ -1,3 +1,4 @@
+import { encode } from "punycode";
 import { unsignedLEB128, encodeString, ieee754 } from "./encoding";
 import traverse from "./traverse";
 
@@ -22,30 +23,40 @@ enum Section {
 // https://webassembly.github.io/spec/core/binary/types.html
 enum Valtype {
   i32 = 0x7f,
-  f32 = 0x7d
+  f32 = 0x7d,
+  f64 = 0x7c
 }
 enum Opcodes {
     end = 0x0b,
     call = 0x10,
     get_local = 0x20,
+    set_local = 0x21,
     f32_const = 0x43,
+    f64_const = 0x44,
     f32_eq = 0x5b,
+    f64_eq = 0x61,
     f32_lt = 0x5d,
+    f64_lt = 0x63,
     f32_gt = 0x5e,
+    f64_gt = 0x64,
     i32_and = 0x71,
     f32_add = 0x92,
+    f64_add = 0xa0,
     f32_sub = 0x93,
+    f64_sub = 0xa1,
     f32_mul = 0x94,
-    f32_div = 0x95
+    f64_mul = 0xa2,
+    f32_div = 0x95,
+    f64_div = 0xa3
 };
 const binaryOpcode = {
-    "+": Opcodes.f32_add,
-    "-": Opcodes.f32_sub,
-    "*": Opcodes.f32_mul,
-    "/": Opcodes.f32_div,
-    "==": Opcodes.f32_eq,
-    ">": Opcodes.f32_gt,
-    "<": Opcodes.f32_lt,
+    "+": Opcodes.f64_add,
+    "-": Opcodes.f64_sub,
+    "*": Opcodes.f64_mul,
+    "/": Opcodes.f64_div,
+    "==": Opcodes.f64_eq,
+    ">": Opcodes.f64_gt,
+    "<": Opcodes.f64_lt,
     "&&": Opcodes.i32_and
   };
   // http://webassembly.github.io/spec/core/binary/modules.html#export-section
@@ -71,13 +82,29 @@ const binaryOpcode = {
     unsignedLEB128(data.length),
     ...flatten(data)
   ];
+  const encodeLocal = (count: number, type: Valtype) => [
+    unsignedLEB128(count),
+    type
+  ];
   
   // https://webassembly.github.io/spec/core/binary/modules.html#sections
-  // sections are encoded by their type followed by their vector contents
+  // sections are encoded by their type followed by content length and the actual content
   const createSection = (sectionType: Section, data: any[]) => [
     sectionType,
     ...encodeVector(data)
   ];
+
+  //The variables in our AST are referenced via their identifier name
+  //but WASM identifies local variables by their index
+  //this function maps an identifier name to its index 
+  const identifiersIndeces = new Map<string, number>();
+  const identifierIndex = (name: string)=>{
+    if(!identifiersIndeces.has(name)){
+        identifiersIndeces.set(name, identifiersIndeces.size);
+    }
+    return identifiersIndeces.get(name);
+  }
+
 //this function emmit the WA code of AST nodes
 const astCode = (ast: program) =>{
     const code: number[] = [];
@@ -86,12 +113,16 @@ const astCode = (ast: program) =>{
             switch (node.type){
                 case "numberliteral":
                     const tempNumberNode = node as numberLiteralNode;
-                    code.push(Opcodes.f32_const);
+                    code.push(Opcodes.f64_const);
                     code.push(...ieee754(tempNumberNode.value));
                     break;
                 case "binaryExpression":
                     const tempBinaryNode = node as binaryExpressionNode;
                     code.push(binaryOpcode[tempBinaryNode.operator]);
+                    break;
+                case "identifier":
+                    code.push(Opcodes.get_local);
+                    code.push(...unsignedLEB128(identifierIndex(node.value)));
                     break;
             }
 
@@ -104,9 +135,14 @@ const astCode = (ast: program) =>{
                 code.push(Opcodes.call);
                 code.push(...unsignedLEB128(0));
                 break;
+            case "variableDeclaration":
+              emmitExpression(statement.initializer);
+              code.push(Opcodes.set_local);
+              code.push(...unsignedLEB128(identifierIndex(statement.name)));
+              break;
         }
     });
-    return code;
+    return {code, identifiersCount: identifiersIndeces.size};
 };
 
 export const emitter: Emitter = (ast: program) => {
@@ -116,7 +152,7 @@ export const emitter: Emitter = (ast: program) => {
   
     const floatVoidType = [
       functionType,
-      ...encodeVector([Valtype.f32]),
+      ...encodeVector([Valtype.f64]),
       emptyArray
     ];
   
@@ -153,11 +189,13 @@ export const emitter: Emitter = (ast: program) => {
         [...encodeString("run"), ExportType.func, 0x01 /* function index */]
       ])
     );
+    const {code, identifiersCount} = astCode(ast);
+    const identifier = identifiersCount > 0 ? [encodeLocal(identifiersCount, Valtype.f64)] : [];
   
     // the code section contains vectors of functions
     const functionBody = encodeVector([
-      emptyArray /** locals */,
-      ...astCode(ast),
+      ...encodeVector(identifier),
+      ...code,  
       Opcodes.end
     ]);
   

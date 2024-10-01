@@ -18,12 +18,12 @@ describe("tokenize", () => {
   });
   test("dealing with unrecognized token", () => {
     expect(() => {
-      const input = " print foo   print";
+      const input = " print $   print";
       tokenize(input);
-    }).toThrowError("Unexpected token f");
+    }).toThrowError("Unexpected token $");
   });
   test("multiple mixed tokens", () => {
-    const input = " print 2";
+    const input = " print 2.2";
     const tokens = tokenize(input);
     expect(tokens.length).toBe(2);
     expect(tokens[0].type).toBe("keyword");

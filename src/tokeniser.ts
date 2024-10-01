@@ -1,4 +1,4 @@
-export const keywords = ["print"];
+export const keywords = ["print", "var"];
 export const operators = ["+", "-",  "/",  "*",  "==",  ">",  "<",  "&&"];
 
 //The purpose of this function is to escape special regex characters in a string.
@@ -27,10 +27,12 @@ const regexMatcher=(regex: string, type: tokenType): Matcher=>(input: string, in
 }
 //matches by the order priority
 const matchers= [
-    regexMatcher("^[0-9]+", "number"),
+    regexMatcher("^[.0-9]+", "number"),
     regexMatcher(`^(${keywords.join("|")})`, "keyword"),
     regexMatcher("^\\s+", "whitespace"),
     regexMatcher(`^(${operators.map(escapeRegEx).join("|")})`, "operator"),
+    regexMatcher(`^[a-z]`, "identifier"),
+    regexMatcher(`^=`, "assignment"),
     regexMatcher("^[()]{1}", "parenthesis"),
 ];
 const locationForIndex = (input:string, index: number) => ({

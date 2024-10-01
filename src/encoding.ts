@@ -3,10 +3,10 @@ import { Buffer } from "buffer";
 // https://en.wikipedia.org/wiki/IEEE_754-2008
 // creates a 32 bit float from a number 
 export const ieee754 = (n: number):Uint8Array => {
-    const buf = Buffer.allocUnsafe(4);
+    const buf = Buffer.allocUnsafe(8);
     //Writes the specified bytes, using little endian, to a Buffer object. 
     //The bytes should be 32 bit float.
-    buf.writeFloatLE(n,0);
+    buf.writeDoubleLE(n,0);
     return Uint8Array.from(buf);
 }
 
@@ -21,7 +21,7 @@ export const signedLEB128 = (n: number):number[]=>{
     let more = true;
     while(more){
         //extract the least significant 7 bits
-        let byte = n& 0x7F;
+        let byte = n& 0x7f;
         //right shifting 7 bits
         n>>>=7;
         //checks if the number is empty and the sign of the last byte (its 6th bit = 0) is positive
@@ -43,7 +43,7 @@ export const signedLEB128 = (n: number):number[]=>{
 export const unsignedLEB128 = (n: number):number[] =>{
     const buffer = [];
     do{
-        let byte = n & 0x7F;
+        let byte = n & 0x7f;
         n>>>=7;
         //no need for checking the positivtiy of the byte since function return an unsigned number
         if(n!==0){

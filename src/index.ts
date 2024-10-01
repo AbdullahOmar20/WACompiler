@@ -1,7 +1,7 @@
 declare var CodeMirror: any;
-const interpreterRuntime = require("/built/interpreter").runtime;
-const compilerRuntime = require("/built/compiler").runtime;
-const { keywords, operators } = require("../built/tokeniser");
+const interpreterRuntime = require("/built/src/interpreter").runtime;
+const compilerRuntime = require("/built/src/compiler").runtime;
+const { keywords, operators } = require("/built/src/tokeniser");
 
 const compileButton = document.getElementById("compile") as HTMLButtonElement;
 const interpretButton = document.getElementById("interpret") as HTMLButtonElement;
